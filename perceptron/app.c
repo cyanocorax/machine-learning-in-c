@@ -26,15 +26,19 @@ int main() {
 
   t_output = 0.7;
 
+  // show initial values
   printf("===INIT===\n");
   printf("[INPUT] "); print_vec(inputs, N_INPUTS);
   printf("[WEIGHTS] "); print_vec(weights, N_INPUTS);
+  printf("[BIAS] "); printf("%4f\n", bias);
   printf("==========\n");
 
   for(i = 0; i < N_ITERS; i++) {
     perceptron_forward(inputs, weights, N_INPUTS, bias, sigmoid, &output);
     error = t_output - output;
     perceptron_backward(inputs, weights, N_INPUTS, &bias, error, LR);
+
+    // show weights, bias and output for each iteration
     printf("===%dItrs===\n", i + 1);
     printf("[WEIGHTS] "); print_vec(weights, N_INPUTS);
     printf("[BIAS] "); printf("%4f\n", bias);
@@ -42,6 +46,7 @@ int main() {
     printf("==========\n");
   }
 
+  // show the final output
   printf("output: %f\n", output);
 
   return 0;
