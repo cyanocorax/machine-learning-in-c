@@ -4,68 +4,52 @@
 #include <math.h>
 #include "perceptron.h"
 
-#define N_INPUTS 5
+#define N_SAMPLES 4
+#define N_INPUTS 2
 #define N_ITERS 50
-#define LR 0.1
+#define LR 1.0
 
-void init(double *weights, int n_weights, double *bias);
 double sigmoid(double sum);
 void print_vec(double *vec, int n);
 
 int main() {
-  double inputs[] = {0.2, 0.5, 0.1, 0.3, 1.0};
-  double weights[N_INPUTS];
-  double output, t_output;
-  double bias;
+  perceptron *net;
+  double inputs[N_SAMPLES][N_INPUTS] = {
+    {0.0, 0.0},
+    {0.0, 1.0},
+    {1.0, 0.0},
+    {1.0, 1.0}
+  };
+  double outputs[N_SAMPLES];
+  double targets[] = {0.0, 0.0, 0.0, 1.0};
   double error;
-  int i;
+  int i, j;
 
   srand(time(NULL));
 
-  init(weights, N_INPUTS, &bias);
+  net = perceptron_alloc(N_INPUTS);
 
-  t_output = 0.7;
-
-  // show initial values
-  printf("===INIT===\n");
-  printf("[INPUT] "); print_vec(inputs, N_INPUTS);
-  printf("[WEIGHTS] "); print_vec(weights, N_INPUTS);
-  printf("[BIAS] "); printf("%4f\n", bias);
-  printf("==========\n");
+  perceptron_init(net);
 
   for(i = 0; i < N_ITERS; i++) {
-    perceptron_forward(inputs, weights, N_INPUTS, bias, sigmoid, &output);
-    error = t_output - output;
-    perceptron_backward(inputs, weights, N_INPUTS, &bias, error, LR);
-
-    // show weights, bias and output for each iteration
-    printf("===%dItrs===\n", i + 1);
-    printf("[WEIGHTS] "); print_vec(weights, N_INPUTS);
-    printf("[BIAS] "); printf("%4f\n", bias);
-    printf("[OUTPUT] "); printf("%4f\n", output);
-    printf("==========\n");
+    for(j = 0; j < N_SAMPLES; j++) {
+      perceptron_forward(net, inputs[j], sigmoid, &outputs[j]);
+      error = targets[j] - outputs[j];
+      perceptron_backward(net, inputs[j], error, LR);
+    }
+    printf("Epoch %03d | error: %.3f | w=[%.3f, %.3f] b=%.3f\n", i + 1, error, net->weights[0], net->weights[1], net->bias);
   }
 
-  // show the final output
-  printf("output: %f\n", output);
+  printf("[Outputs] ");
+  for(i = 0; i < N_SAMPLES; i++)
+    printf("%.3f ", outputs[i]);
+  printf("\n");
+
+  perceptron_free(net);
 
   return 0;
 }
 
-void init(double *weights, int n_weights, double *bias) {
-  int i;
-  for(i = 0; i < n_weights; i++)
-    weights[i] = (rand() % 100 - 50) / 50.0;
-  *bias = (rand() % 101) / 100.0;
-}
-
 double sigmoid(double sum) {
   return 1.0 / (1.0 + exp(-sum));
-}
-
-void print_vec(double *vec, int n) {
-  int i;
-  for(i = 0; i < n; i++)
-    printf("%.4f ", vec[i]);
-  printf("\n");
 }
